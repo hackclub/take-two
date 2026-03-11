@@ -157,6 +157,7 @@ export interface UserProfile {
   bio?: string
   ranks: Rank[]
   projects: ProfileProject[]
+  leaderboardPosition?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -187,13 +188,22 @@ function parseProjectRecords(records: any[]): ProfileProject[] {
 async function buildUserProfile(userRecord: any, projects: ProfileProject[]): Promise<UserProfile> {
   const rankIds: string[] = userRecord.fields['Ranks'] ?? []
   const ranks = await resolveRanks(rankIds)
+  const leaderboardPosition = await computeLeaderboardPosition(userRecord.fields['username'])
   return {
     slackId: userRecord.fields['Slack ID'],
     username: userRecord.fields['username'],
     bio: userRecord.fields['Bio'],
     ranks,
     projects,
+    leaderboardPosition,
   }
+}
+
+async function computeLeaderboardPosition(username: string): Promise<number | undefined> {
+  const users = await getAllUsers()
+  const sorted = [...users].sort((a, b) => b.projectCount - a.projectCount)
+  const index = sorted.findIndex((u) => u.username === username)
+  return index >= 0 ? index + 1 : undefined
 }
 
 async function fetchUserProjects(projectIds: string[]): Promise<ProfileProject[]> {

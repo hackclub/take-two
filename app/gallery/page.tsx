@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { getAllProjects, getSlackProfile, GalleryProject } from '@/lib/airtable'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 1800 // 30 minutes
 
 function ProjectCard({ project }: { project: GalleryProject & { ownerAvatar?: string; ownerDisplayName?: string } }) {
   const image = project.pictures?.[0]
 
   return (
-    <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden flex flex-col">
+    <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden flex flex-col hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50 transition-all duration-200 hover:-translate-y-0.5">
       {image && (
         <div className="aspect-video bg-grub-bg2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -28,9 +28,9 @@ function ProjectCard({ project }: { project: GalleryProject & { ownerAvatar?: st
             href={project.codeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-grub-blue hover:underline"
+            className="inline-block self-start text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
           >
-            View Code →
+            View Repo
           </a>
         )}
 

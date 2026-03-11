@@ -30,7 +30,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
         : null;
 
     return (
-        <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden flex flex-col">
+        <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden flex flex-col hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50 transition-all duration-200 hover:-translate-y-0.5">
             {image && (
                 <div className="aspect-video bg-grub-bg2 overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -67,9 +67,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                         href={project.codeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-grub-blue hover:underline"
+                        className="inline-block self-start text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
                     >
-                        View Code →
+                        View Repo
                     </a>
                 )}
             </div>
