@@ -103,6 +103,41 @@ export async function getSlackProfile(slackId: string): Promise<SlackProfile | n
   }
 }
 
+// --- Ranks ---
+
+export interface Rank {
+  name: string
+  colorHex: string
+}
+
+/** Fetch all ranks from the Ranks table, keyed by record ID. */
+async function getAllRanks(): Promise<Map<string, Rank>> {
+  const table = process.env.RANKS_AIRTABLE_TABLE_ID
+  const data = await airtableFetch(
+    `${table}?fields[]=Name&fields[]=color_hex`,
+    { revalidate: 300, tags: ['ranks'] }
+  )
+  const map = new Map<string, Rank>()
+  for (const rec of data.records) {
+    if (rec.fields['Name']) {
+      map.set(rec.id, {
+        name: rec.fields['Name'],
+        colorHex: rec.fields['color_hex'] || '#888888',
+      })
+    }
+  }
+  return map
+}
+
+/** Resolve rank record IDs to Rank objects. */
+async function resolveRanks(rankIds: string[]): Promise<Rank[]> {
+  if (rankIds.length === 0) return []
+  const allRanks = await getAllRanks()
+  return rankIds
+    .map((id) => allRanks.get(id))
+    .filter((r): r is Rank => r != null)
+}
+
 // --- Profile data ---
 
 export interface ProfileProject {
@@ -120,6 +155,7 @@ export interface UserProfile {
   slackId: string
   username: string
   bio?: string
+  ranks: Rank[]
   projects: ProfileProject[]
 }
 
@@ -148,11 +184,14 @@ function parseProjectRecords(records: any[]): ProfileProject[] {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildUserProfile(userRecord: any, projects: ProfileProject[]): UserProfile {
+async function buildUserProfile(userRecord: any, projects: ProfileProject[]): Promise<UserProfile> {
+  const rankIds: string[] = userRecord.fields['Ranks'] ?? []
+  const ranks = await resolveRanks(rankIds)
   return {
     slackId: userRecord.fields['Slack ID'],
     username: userRecord.fields['username'],
     bio: userRecord.fields['Bio'],
+    ranks,
     projects,
   }
 }
@@ -189,7 +228,7 @@ async function getUserProfile(filterField: string, filterValue: string): Promise
   const user = data.records[0]
   const projectIds: string[] = user.fields['Projects'] ?? []
   const projects = await fetchUserProjects(projectIds)
-  return buildUserProfile(user, projects)
+  return await buildUserProfile(user, projects)
 }
 
 export async function getUserProfileByUsername(username: string): Promise<UserProfile | null> {
@@ -213,32 +252,132 @@ export async function updateUserBio(slackId: string, bio: string): Promise<void>
   revalidateTag('user-profile')
 }
 
+export async function updateUsername(slackId: string, username: string): Promise<void> {
+  const table = process.env.USER_AIRTABLE_TABLE_ID
+  const formula = encodeURIComponent(`{Slack ID}="${escapeFormulaValue(slackId)}"`)
+  const data = await airtableFetch(`${table}?filterByFormula=${formula}&maxRecords=1`)
+  if (data.records.length === 0) throw new Error('User not found')
+  const recordId = data.records[0].id
+  await airtableFetch(`${table}/${recordId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ fields: { username } }),
+  })
+  revalidateTag('user-profile')
+  revalidateTag('all-users')
+}
+
 // --- Browse all users ---
 
 export interface UserSummary {
   username: string
   slackId: string
   projectCount: number
+  ranks: Rank[]
 }
 
 export async function getAllUsers(): Promise<UserSummary[]> {
   const table = process.env.USER_AIRTABLE_TABLE_ID
+  const allRanks = await getAllRanks()
   const results: UserSummary[] = []
   let offset: string | undefined
 
   do {
     const data = await airtableFetch(
-      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects${offset ? `&offset=${offset}` : ''}`,
+      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`,
       { revalidate: 120, tags: ['all-users'] }
     )
     for (const rec of data.records) {
       if (rec.fields['username']) {
+        const rankIds: string[] = rec.fields['Ranks'] ?? []
         results.push({
           username: rec.fields['username'],
           slackId: rec.fields['Slack ID'],
           projectCount: (rec.fields['Projects'] ?? []).length,
+          ranks: rankIds
+            .map((id) => allRanks.get(id))
+            .filter((r): r is Rank => r != null),
         })
       }
+    }
+    offset = data.offset
+  } while (offset)
+
+  return results
+}
+
+// --- Gallery: all projects (patch-first, fallback to HARDWARE_ALL) ---
+
+export interface GalleryProject extends ProfileProject {
+  ownerUsername?: string
+  ownerSlackId?: string
+}
+
+export async function getAllProjects(): Promise<GalleryProject[]> {
+  // 1. Fetch all patches, keyed by their HARDWARE_ALL record ID
+  const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
+  const patches = new Map<string, GalleryProject>()
+  let offset: string | undefined
+
+  do {
+    const data = await airtableFetch(
+      `${patchTable}?${offset ? `offset=${offset}` : ''}`,
+      { revalidate: 120, tags: ['all-projects'] }
+    )
+    for (const rec of data.records) {
+      const f = rec.fields
+      const hwId = f['unified_db_record_id']
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pictures = f['pictures']?.map((a: any) => ({ url: a.url, filename: a.filename }))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ?? f['Screenshot (from HARDWARE_ALL)']?.map((a: any) => ({ url: a.url, filename: a.filename }))
+
+      patches.set(hwId, {
+        id: rec.id,
+        name: f['project name'] || undefined,
+        description: f['description'] || f['Description (from HARDWARE_ALL)']?.[0] || undefined,
+        pictures,
+        codeUrl: f['Code URL (from HARDWARE_ALL)']?.[0] || undefined,
+        hoursSpent: f['Hours Spent (from HARDWARE_ALL)']?.[0] ?? undefined,
+        approvedAt: f['Approved At (from HARDWARE_ALL)']?.[0] || undefined,
+        status: f['status'] || undefined,
+        ownerUsername: f['username (from Users)']?.[0] || undefined,
+        ownerSlackId: f['Slack ID (from Users)']?.[0] || undefined,
+      })
+    }
+    offset = data.offset
+  } while (offset)
+
+  // 2. Fetch all HARDWARE_ALL records
+  const hwTable = process.env.AIRTABLE_TABLE_ID
+  const results: GalleryProject[] = []
+  offset = undefined
+
+  do {
+    const data = await airtableFetch(
+      `${hwTable}?${offset ? `offset=${offset}` : ''}`,
+      { revalidate: 300, tags: ['hw-projects'] }
+    )
+    for (const rec of data.records) {
+      // If a patch exists for this record, use it instead
+      const patch = patches.get(rec.id)
+      if (patch) {
+        results.push(patch)
+        continue
+      }
+
+      // No patch — use raw HARDWARE_ALL data
+      const f = rec.fields
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const screenshots = f['Screenshot']?.map((a: any) => ({ url: a.url, filename: a.filename }))
+      results.push({
+        id: rec.id,
+        name: f['Name'] || undefined,
+        description: f['Description'] || undefined,
+        pictures: screenshots,
+        codeUrl: f['Code URL'] || undefined,
+        hoursSpent: f['Hours Spent'] ?? undefined,
+        approvedAt: f['Approved At'] || undefined,
+      })
     }
     offset = data.offset
   } while (offset)

@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   const email = data.user?.profile?.email
+  const displayName = data.user?.profile?.display_name || data.user?.profile?.real_name || data.user?.name || slackId
   const name = data.user?.profile?.real_name || data.user?.name || slackId
 
   if (!email) {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
   session.slackId = trimmedSlackId
 
   try {
-    const username = name.replace(/\s+/g, '.').toLowerCase()
+    const username = displayName.replace(/\s+/g, '.').toLowerCase().replace(/[^a-z0-9._-]/g, '')
     const userRecordId = await syncUserProjects(trimmedSlackId, email, username)
     session.airtableUserId = userRecordId
   } catch (err) {

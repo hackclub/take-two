@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getIronSession } from 'iron-session'
 import { cookies } from 'next/headers'
 import { SessionData, sessionOptions } from '@/lib/session'
-import { syncUserProjects } from '@/lib/airtable'
+import { syncUserProjects, getSlackProfile } from '@/lib/airtable'
 
 export async function GET(request: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL!
@@ -50,10 +50,15 @@ export async function GET(request: NextRequest) {
   session.accessToken = access_token
   session.slackId = identity.slack_id
 
-  const username = [identity.first_name, identity.last_name]
-    .filter(Boolean)
-    .join('.')
-    .toLowerCase() || identity.primary_email.split('@')[0]
+  // Use Slack display name for username generation, fall back to HCA name
+  const slackProfile = await getSlackProfile(identity.slack_id)
+  const displayName = slackProfile?.displayName
+  const username = displayName
+    ? displayName.replace(/\s+/g, '.').toLowerCase().replace(/[^a-z0-9._-]/g, '')
+    : [identity.first_name, identity.last_name]
+        .filter(Boolean)
+        .join('.')
+        .toLowerCase() || identity.primary_email.split('@')[0]
 
   try {
     const userRecordId = await syncUserProjects(

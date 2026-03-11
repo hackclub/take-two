@@ -29,9 +29,9 @@ export function SyncButton() {
     <button
       onClick={handleSync}
       disabled={loading}
-      className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50"
+      className="text-xs font-medium px-2 py-1 bg-grub-bg2 text-grub-fg3 rounded-full hover:bg-grub-bg3 transition-colors disabled:opacity-50"
     >
-      {loading ? 'Syncing…' : result === 'success' ? 'Synced!' : result === 'error' ? 'Sync failed' : 'Re-sync projects'}
+      {loading ? 'Syncing...' : result === 'success' ? 'Synced!' : result === 'error' ? 'Sync failed' : 'Re-sync projects'}
     </button>
   )
 }
