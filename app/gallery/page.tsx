@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { getAllProjects, getSlackProfile, GalleryProject } from '@/lib/airtable'
+import { groupByStatus } from '@/lib/status'
 
 export const revalidate = 1800 // 30 minutes
 
 function ProjectCard({ project }: { project: GalleryProject & { ownerAvatar?: string; ownerDisplayName?: string } }) {
   const image = project.pictures?.[0]
+  const isVerified = project.status === 'built_verified'
 
   return (
-    <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden flex flex-col hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50 transition-all duration-200 hover:-translate-y-0.5">
+    <div className={`bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
       {image && (
         <div className="aspect-video bg-grub-bg2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -15,6 +17,12 @@ function ProjectCard({ project }: { project: GalleryProject & { ownerAvatar?: st
         </div>
       )}
       <div className="p-5 space-y-3 flex flex-col flex-1">
+        {project.ysws && (
+          <span className="inline-block self-start text-xs font-medium px-2 py-0.5 rounded-full bg-grub-purple/20 text-grub-purple">
+            {project.ysws}
+          </span>
+        )}
+
         {project.name && (
           <h3 className="font-semibold text-grub-fg0">{project.name}</h3>
         )}
@@ -92,9 +100,19 @@ export default async function GalleryPage() {
           <p className="text-lg">No projects yet</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enriched.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+        <div className="space-y-8">
+          {groupByStatus(enriched).map((group) => (
+            <div key={group.key} className="space-y-3">
+              <h3 className="text-sm font-medium text-grub-fg4 uppercase tracking-wide">
+                {group.label}
+                <span className="ml-2 text-grub-fg4/60">{group.projects.length}</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {group.projects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -11,14 +11,21 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { bio } = await request.json()
+  let body
+  try { body = await request.json() } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+  const { bio } = body
 
   if (typeof bio !== 'string' || bio.length > 200) {
     return NextResponse.json({ error: 'Bio must be 200 characters or less' }, { status: 400 })
   }
 
-  // Strip control characters (keep newlines/tabs) and trim
-  const sanitized = bio.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim()
+  // Strip control characters (keep newlines/tabs) and HTML tags, then trim
+  const sanitized = bio
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/<[^>]*>/g, '')
+    .trim()
 
   try {
     await updateUserBio(session.slackId, sanitized)

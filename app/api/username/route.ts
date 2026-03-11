@@ -11,7 +11,11 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { username } = await request.json()
+  let body
+  try { body = await request.json() } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+  const { username } = body
 
   if (typeof username !== 'string' || username.length < 1 || username.length > 30) {
     return NextResponse.json({ error: 'Username must be 1-30 characters' }, { status: 400 })

@@ -1,13 +1,14 @@
 import Link from 'next/link'
-import { getAllUsers, getSlackProfile } from '@/lib/airtable'
+import { getAllUsers, getSlackProfile, compareUsers } from '@/lib/airtable'
 import { RankBadges } from '@/app/components/RankBadge'
+import { STATUS_LABELS } from '@/lib/status'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {
   const users = await getAllUsers()
 
-  const sorted = [...users].sort((a, b) => b.projectCount - a.projectCount)
+  const sorted = [...users].sort(compareUsers)
 
   const profiles = await Promise.all(
     sorted.map(async (user) => {
@@ -60,13 +61,17 @@ export default async function LeaderboardPage() {
                 <p className="text-xs text-grub-fg4">@{user.username}</p>
               </div>
 
-              <div className="text-right flex-shrink-0">
-                <p className="text-sm font-semibold text-grub-fg0">
-                  {user.projectCount}
-                </p>
-                <p className="text-xs text-grub-fg4">
-                  {user.projectCount === 1 ? 'project' : 'projects'}
-                </p>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                {(Object.entries(user.statusCounts) as [keyof typeof user.statusCounts, number][])
+                  .filter(([, count]) => count > 0)
+                  .map(([status, count]) => (
+                    <span
+                      key={status}
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_LABELS[status]?.color ?? 'bg-grub-bg2 text-grub-fg4'}`}
+                    >
+                      {count} {STATUS_LABELS[status]?.short ?? status}
+                    </span>
+                  ))}
               </div>
             </Link>
           ))}
