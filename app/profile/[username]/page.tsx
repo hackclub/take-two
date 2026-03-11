@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { getUserProfileByUsername, getSlackProfile, ProfileProject } from '@/lib/airtable'
 import { Logo } from '@/app/components/Logo'
 
+export const dynamic = 'force-dynamic'
+
 const BROWSE_PATH = '/browse'
 
 function ProjectCard({ project }: { project: ProfileProject }) {

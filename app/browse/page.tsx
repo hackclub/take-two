@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { getAllUsers, getSlackProfile } from '@/lib/airtable'
 import { Logo } from '@/app/components/Logo'
 
+export const dynamic = 'force-dynamic'
+
 export default async function BrowsePage() {
   const users = await getAllUsers()
 
