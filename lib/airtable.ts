@@ -166,6 +166,7 @@ export interface UserProfile {
   bio?: string
   githubUrl?: string
   websiteUrl?: string
+  emails?: string
   ranks: Rank[]
   projects: ProfileProject[]
   leaderboardPosition?: number
@@ -207,6 +208,7 @@ async function buildUserProfile(userRecord: any, projects: ProfileProject[]): Pr
     bio: userRecord.fields['Bio'],
     githubUrl: userRecord.fields['github_url'] || undefined,
     websiteUrl: userRecord.fields['website_url'] || undefined,
+    emails: userRecord.fields['emails'] || undefined,
     ranks,
     projects,
     leaderboardPosition,
@@ -306,7 +308,7 @@ export async function updateGithubUrl(slackId: string, githubUrl: string): Promi
 export async function updateProjectField(
   slackId: string,
   projectId: string,
-  field: 'project name' | 'description' | 'demo_url',
+  field: 'project name' | 'description' | 'demo_url' | 'status' | 'pictures',
   value: string
 ): Promise<void> {
   // Verify the project belongs to this user
@@ -318,9 +320,13 @@ export async function updateProjectField(
   if (!projectIds.includes(projectId)) throw new Error('Project not found')
 
   const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
+  // Airtable attachments need [{url: "..."}] format
+  const fieldValue = field === 'pictures' && value
+    ? [{ url: value }]
+    : value
   await airtableFetch(`${patchTable}/${assertRecordId(projectId)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ fields: { [field]: value } }),
+    body: JSON.stringify({ fields: { [field]: fieldValue } }),
   })
   revalidateTag('user-projects')
 }
@@ -334,6 +340,19 @@ export async function updateWebsiteUrl(slackId: string, websiteUrl: string): Pro
   await airtableFetch(`${table}/${recordId}`, {
     method: 'PATCH',
     body: JSON.stringify({ fields: { website_url: websiteUrl } }),
+  })
+  revalidateTag('user-profile')
+}
+
+export async function updateEmails(slackId: string, emails: string): Promise<void> {
+  const table = process.env.USER_AIRTABLE_TABLE_ID
+  const formula = encodeURIComponent(`{Slack ID}="${escapeFormulaValue(slackId)}"`)
+  const data = await airtableFetch(`${table}?filterByFormula=${formula}&maxRecords=1`)
+  if (data.records.length === 0) throw new Error('User not found')
+  const recordId = data.records[0].id
+  await airtableFetch(`${table}/${recordId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ fields: { emails } }),
   })
   revalidateTag('user-profile')
 }

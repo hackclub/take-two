@@ -14,6 +14,7 @@ import { RankBadges } from "@/app/components/RankBadge";
 import { ShareButton } from "@/app/components/ShareButton";
 import { EditableGithub } from "@/app/components/EditableGithub";
 import { EditableWebsite } from "@/app/components/EditableWebsite";
+import { EditableEmails } from "@/app/components/EditableEmails";
 import { EditableProjectCard } from "@/app/components/EditableProjectCard";
 import { safeHref } from "@/lib/sanitize";
 import { STATUS_LABELS, groupByStatus } from "@/lib/status";
@@ -68,6 +69,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                     projectId={project.id}
                     initialName={project.name ?? ''}
                     initialDescription={project.description ?? ''}
+                    initialDemoUrl={project.demoUrl ?? ''}
+                    initialStatus={project.status ?? 'design_only'}
+                    initialImageUrl={project.pictures?.[0]?.url ?? ''}
                 />
 
                 <div className="flex flex-wrap gap-2 relative z-10">
@@ -113,6 +117,7 @@ export default async function Dashboard() {
     const bio = profile?.bio ?? "";
     const githubUrl = profile?.githubUrl ?? "";
     const websiteUrl = profile?.websiteUrl ?? "";
+    const emails = profile?.emails ?? "";
 
     return (
         <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
@@ -182,6 +187,12 @@ export default async function Dashboard() {
                         Website
                     </p>
                     <EditableWebsite initialUrl={websiteUrl} />
+                </div>
+                <div>
+                    <p className="text-xs font-medium text-grub-fg4 uppercase tracking-wide mb-1">
+                        Additional Emails
+                    </p>
+                    <EditableEmails initialEmails={emails} />
                 </div>
             </div>
 

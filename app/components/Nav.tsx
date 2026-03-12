@@ -25,6 +25,12 @@ export async function Nav() {
                 </div>
                 <div className="flex items-center gap-6">
                     <Link
+                        href="/docs"
+                        className="text-sm font-medium text-grub-fg4 hover:text-grub-fg transition-colors"
+                    >
+                        Docs
+                    </Link>
+                    <Link
                         href="/gallery"
                         className="text-sm font-medium text-grub-fg4 hover:text-grub-fg transition-colors"
                     >

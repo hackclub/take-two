@@ -4,16 +4,19 @@ import { cookies } from 'next/headers'
 import { SessionData, sessionOptions } from '@/lib/session'
 import { updateProjectField } from '@/lib/airtable'
 
-const ALLOWED_FIELDS = ['project name', 'description', 'demo_url'] as const
+const ALLOWED_FIELDS = ['project name', 'description', 'demo_url', 'status', 'pictures'] as const
 type AllowedField = (typeof ALLOWED_FIELDS)[number]
 
 const MAX_LENGTHS: Record<AllowedField, number> = {
   'project name': 200,
   description: 1000,
   demo_url: 500,
+  status: 50,
+  pictures: 500,
 }
 
-const URL_FIELDS = new Set<string>(['demo_url'])
+const URL_FIELDS = new Set<string>(['demo_url', 'pictures'])
+const VALID_STATUSES = new Set(['built_verified', 'built_needs_revision', 'design_only'])
 
 export async function PUT(request: NextRequest) {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
@@ -46,6 +49,11 @@ export async function PUT(request: NextRequest) {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
     .replace(/<[^>]*>/g, '')
     .trim()
+
+  // Status must be a known value
+  if (field === 'status' && !VALID_STATUSES.has(sanitized)) {
+    return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+  }
 
   // URL fields must be valid http(s) URLs
   if (URL_FIELDS.has(field) && sanitized) {

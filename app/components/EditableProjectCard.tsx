@@ -2,37 +2,70 @@
 
 import { useState } from 'react'
 
+const STATUS_OPTIONS = [
+  { value: 'built_verified', label: 'Built - Verified' },
+  { value: 'built_needs_revision', label: 'Built - Being Revised' },
+  { value: 'design_only', label: 'Design Only' },
+] as const
+
 interface EditableProjectCardProps {
   projectId: string
   initialName: string
   initialDescription: string
+  initialDemoUrl: string
+  initialStatus: string
+  initialImageUrl: string
 }
 
 export function EditableProjectCard({
   projectId,
   initialName,
   initialDescription,
+  initialDemoUrl,
+  initialStatus,
+  initialImageUrl,
 }: EditableProjectCardProps) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
+  const [demoUrl, setDemoUrl] = useState(initialDemoUrl)
+  const [status, setStatus] = useState(initialStatus)
+  const [imageUrl, setImageUrl] = useState(initialImageUrl)
+
   const [savedName, setSavedName] = useState(initialName)
   const [savedDescription, setSavedDescription] = useState(initialDescription)
+  const [savedDemoUrl, setSavedDemoUrl] = useState(initialDemoUrl)
+  const [savedStatus, setSavedStatus] = useState(initialStatus)
+  const [savedImageUrl, setSavedImageUrl] = useState(initialImageUrl)
+
   const [saving, setSaving] = useState(false)
 
-  async function saveField(field: 'project name' | 'description', value: string) {
+  async function saveField(field: string, value: string) {
     const res = await fetch('/api/project', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectId, field, value: value.trim() }),
     })
-    if (!res.ok) throw new Error()
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Save failed')
+    }
   }
 
   async function handleSave() {
     const trimmedName = name.trim()
     const trimmedDesc = description.trim()
-    if (trimmedName === savedName && trimmedDesc === savedDescription) {
+    const trimmedDemo = demoUrl.trim()
+    const trimmedImage = imageUrl.trim()
+
+    const unchanged =
+      trimmedName === savedName &&
+      trimmedDesc === savedDescription &&
+      trimmedDemo === savedDemoUrl &&
+      status === savedStatus &&
+      trimmedImage === savedImageUrl
+
+    if (unchanged) {
       setEditing(false)
       return
     }
@@ -42,11 +75,19 @@ export function EditableProjectCard({
       const promises: Promise<void>[] = []
       if (trimmedName !== savedName) promises.push(saveField('project name', trimmedName))
       if (trimmedDesc !== savedDescription) promises.push(saveField('description', trimmedDesc))
+      if (trimmedDemo !== savedDemoUrl) promises.push(saveField('demo_url', trimmedDemo))
+      if (status !== savedStatus) promises.push(saveField('status', status))
+      if (trimmedImage !== savedImageUrl) promises.push(saveField('pictures', trimmedImage))
       await Promise.all(promises)
       setSavedName(trimmedName)
       setSavedDescription(trimmedDesc)
+      setSavedDemoUrl(trimmedDemo)
+      setSavedStatus(status)
+      setSavedImageUrl(trimmedImage)
       setName(trimmedName)
       setDescription(trimmedDesc)
+      setDemoUrl(trimmedDemo)
+      setImageUrl(trimmedImage)
       setEditing(false)
     } catch {
       // keep editing on failure
@@ -58,6 +99,9 @@ export function EditableProjectCard({
   function handleCancel() {
     setName(savedName)
     setDescription(savedDescription)
+    setDemoUrl(savedDemoUrl)
+    setStatus(savedStatus)
+    setImageUrl(savedImageUrl)
     setEditing(false)
   }
 
@@ -108,6 +152,42 @@ export function EditableProjectCard({
           className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent resize-none placeholder-grub-fg4"
         />
         <span className="text-xs text-grub-fg4">{description.length}/1000</span>
+      </div>
+      <div>
+        <label className="text-xs text-grub-fg4 mb-0.5 block">Demo URL</label>
+        <input
+          type="url"
+          value={demoUrl}
+          onChange={(e) => setDemoUrl(e.target.value.slice(0, 500))}
+          maxLength={500}
+          placeholder="https://..."
+          className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent placeholder-grub-fg4"
+        />
+      </div>
+      <div>
+        <label className="text-xs text-grub-fg4 mb-0.5 block">Image URL</label>
+        <input
+          type="url"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value.slice(0, 500))}
+          maxLength={500}
+          placeholder="https://cdn.example.com/image.png"
+          className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent placeholder-grub-fg4"
+        />
+      </div>
+      <div>
+        <label className="text-xs text-grub-fg4 mb-0.5 block">Status</label>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="flex gap-2 justify-end">
         <button
