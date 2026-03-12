@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation'
 import { getUserProfileByUsername, getSlackProfile, ProfileProject } from '@/lib/airtable'
+import { safeHref } from '@/lib/sanitize'
 import { RankBadges } from '@/app/components/RankBadge'
 import { groupByStatus } from '@/lib/status'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 120 // 2 minutes
 
 function formatDuration(firstDate: string): string {
   const start = new Date(firstDate)
@@ -21,7 +22,9 @@ function formatDuration(firstDate: string): string {
 function ProjectCard({ project }: { project: ProfileProject }) {
   const image = project.pictures?.[0]
   const isVerified = project.status === 'built_verified'
-  const cardUrl = project.codeUrl || project.demoUrl
+  const codeUrl = safeHref(project.codeUrl)
+  const demoUrl = safeHref(project.demoUrl)
+  const cardUrl = codeUrl || demoUrl
 
   return (
     <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
@@ -50,9 +53,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
         )}
 
         <div className="flex flex-wrap gap-2 relative z-10">
-          {project.codeUrl && (
+          {codeUrl && (
             <a
-              href={project.codeUrl}
+              href={codeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
@@ -60,9 +63,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
               View Repo
             </a>
           )}
-          {project.demoUrl && (
+          {demoUrl && (
             <a
-              href={project.demoUrl}
+              href={demoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-purple/20 text-grub-purple hover:bg-grub-purple/30 transition-colors"
@@ -131,9 +134,9 @@ export default async function ProfilePage({
 
           <div className="flex items-center gap-3">
             <p className="text-sm text-grub-fg4">@{profile.username}</p>
-            {profile.githubUrl && (
+            {safeHref(profile.githubUrl) && (
               <a
-                href={profile.githubUrl}
+                href={safeHref(profile.githubUrl)!}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-grub-fg4 hover:text-grub-fg transition-colors"
@@ -144,9 +147,9 @@ export default async function ProfilePage({
                 </svg>
               </a>
             )}
-            {profile.websiteUrl && (
+            {safeHref(profile.websiteUrl) && (
               <a
-                href={profile.websiteUrl}
+                href={safeHref(profile.websiteUrl)!}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-grub-fg4 hover:text-grub-fg transition-colors"

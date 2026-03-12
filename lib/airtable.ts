@@ -7,6 +7,14 @@ function escapeFormulaValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
 
+/** Validate an Airtable record ID to prevent formula injection. */
+function assertRecordId(id: string): string {
+  if (!/^rec[a-zA-Z0-9]{14,17}$/.test(id)) {
+    throw new Error(`Invalid Airtable record ID: ${id}`)
+  }
+  return id
+}
+
 interface AirtableFetchOptions extends RequestInit {
   /** Next.js revalidation in seconds. Omit for no-store (writes, sync). */
   revalidate?: number
@@ -220,7 +228,7 @@ async function fetchUserProjects(projectIds: string[]): Promise<ProfileProject[]
 
   for (let i = 0; i < projectIds.length; i += 100) {
     const batch = projectIds.slice(i, i + 100)
-    const orClauses = batch.map((id) => `RECORD_ID()="${id}"`).join(',')
+    const orClauses = batch.map((id) => `RECORD_ID()="${assertRecordId(id)}"`).join(',')
     const formula = encodeURIComponent(`OR(${orClauses})`)
     const data = await airtableFetch(
       `${patchTable}?filterByFormula=${formula}`,
@@ -295,6 +303,28 @@ export async function updateGithubUrl(slackId: string, githubUrl: string): Promi
   revalidateTag('user-profile')
 }
 
+export async function updateProjectField(
+  slackId: string,
+  projectId: string,
+  field: 'project name' | 'description' | 'demo_url',
+  value: string
+): Promise<void> {
+  // Verify the project belongs to this user
+  const table = process.env.USER_AIRTABLE_TABLE_ID
+  const formula = encodeURIComponent(`{Slack ID}="${escapeFormulaValue(slackId)}"`)
+  const data = await airtableFetch(`${table}?filterByFormula=${formula}&maxRecords=1`)
+  if (data.records.length === 0) throw new Error('User not found')
+  const projectIds: string[] = data.records[0].fields['Projects'] ?? []
+  if (!projectIds.includes(projectId)) throw new Error('Project not found')
+
+  const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
+  await airtableFetch(`${patchTable}/${assertRecordId(projectId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ fields: { [field]: value } }),
+  })
+  revalidateTag('user-projects')
+}
+
 export async function updateWebsiteUrl(slackId: string, websiteUrl: string): Promise<void> {
   const table = process.env.USER_AIRTABLE_TABLE_ID
   const formula = encodeURIComponent(`{Slack ID}="${escapeFormulaValue(slackId)}"`)
@@ -333,7 +363,8 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`
+      `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`,
+      { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const userIds: string[] = rec.fields['Users'] ?? []
@@ -360,7 +391,8 @@ export async function getAllUsers(): Promise<UserSummary[]> {
 
   do {
     const data = await airtableFetch(
-      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`
+      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`,
+      { revalidate: 300, tags: ['all-users'] }
     )
     for (const rec of data.records) {
       if (rec.fields['username']) {
@@ -388,6 +420,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
 export interface GalleryProject extends ProfileProject {
   ownerUsername?: string
   ownerSlackId?: string
+  ownerProfilePicture?: string
 }
 
 export async function getAllProjects(): Promise<GalleryProject[]> {
@@ -397,7 +430,8 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?${offset ? `offset=${offset}` : ''}`
+      `${patchTable}?${offset ? `offset=${offset}` : ''}`,
+      { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const f = rec.fields
@@ -418,6 +452,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
         ysws: f['YSWS Name'] || undefined,
         ownerUsername: f['username (from Users)']?.[0] || undefined,
         ownerSlackId: f['Slack ID (from Users)']?.[0] || undefined,
+        ownerProfilePicture: f['profile_picture']?.[0]?.url || undefined,
       })
     }
     offset = data.offset
@@ -477,7 +512,7 @@ async function getLinkedPatchIds(projectRecordIds: string[]): Promise<Set<string
 
   for (let i = 0; i < projectRecordIds.length; i += 100) {
     const batch = projectRecordIds.slice(i, i + 100)
-    const orClauses = batch.map((id) => `RECORD_ID()="${id}"`).join(',')
+    const orClauses = batch.map((id) => `RECORD_ID()="${assertRecordId(id)}"`).join(',')
     const formula = encodeURIComponent(`OR(${orClauses})`)
     const data = await airtableFetch(
       `${table}?filterByFormula=${formula}&fields[]=unified_db_record_id`
@@ -538,7 +573,7 @@ async function backfillPatchTitles(patchIds: string[], hwProjects: HardwareProje
 
   for (let i = 0; i < patchIds.length; i += 100) {
     const batch = patchIds.slice(i, i + 100)
-    const orClauses = batch.map((id) => `RECORD_ID()="${id}"`).join(',')
+    const orClauses = batch.map((id) => `RECORD_ID()="${assertRecordId(id)}"`).join(',')
     const formula = encodeURIComponent(`AND(OR(${orClauses}),{project name}="")`)
     const data = await airtableFetch(
       `${patchTable}?filterByFormula=${formula}&fields[]=unified_db_record_id&fields[]=project+name`
@@ -588,6 +623,16 @@ export async function syncUserProjects(
   } else {
     userRecordId = user.id
     emails = await ensureEmailInList(user.id, user.emails, email)
+  }
+
+  // Cache Slack profile picture
+  const slackProfile = await getSlackProfile(slackId)
+  if (slackProfile?.avatarUrl) {
+    const userTable = process.env.USER_AIRTABLE_TABLE_ID
+    await airtableFetch(`${userTable}/${userRecordId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ fields: { profile_picture: [{ url: slackProfile.avatarUrl }] } }),
+    })
   }
 
   // Fetch projects for all emails in the list

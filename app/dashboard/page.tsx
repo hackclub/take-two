@@ -14,6 +14,8 @@ import { RankBadges } from "@/app/components/RankBadge";
 import { ShareButton } from "@/app/components/ShareButton";
 import { EditableGithub } from "@/app/components/EditableGithub";
 import { EditableWebsite } from "@/app/components/EditableWebsite";
+import { EditableProjectCard } from "@/app/components/EditableProjectCard";
+import { safeHref } from "@/lib/sanitize";
 import { STATUS_LABELS, groupByStatus } from "@/lib/status";
 
 function ProjectCard({ project }: { project: ProfileProject }) {
@@ -27,7 +29,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
 
     const isVerified = project.status === "built_verified";
 
-    const cardUrl = project.codeUrl || project.demoUrl;
+    const codeUrl = safeHref(project.codeUrl);
+    const demoUrl = safeHref(project.demoUrl);
+    const cardUrl = codeUrl || demoUrl;
 
     return (
         <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? "border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30" : "border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50"}`}>
@@ -60,22 +64,16 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                     )}
                 </div>
 
-                {project.name && (
-                    <h3 className="font-semibold text-grub-fg0">
-                        {project.name}
-                    </h3>
-                )}
-
-                {project.description && (
-                    <p className="text-sm text-grub-fg3 line-clamp-3 flex-1">
-                        {project.description}
-                    </p>
-                )}
+                <EditableProjectCard
+                    projectId={project.id}
+                    initialName={project.name ?? ''}
+                    initialDescription={project.description ?? ''}
+                />
 
                 <div className="flex flex-wrap gap-2 relative z-10">
-                    {project.codeUrl && (
+                    {codeUrl && (
                         <a
-                            href={project.codeUrl}
+                            href={codeUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
@@ -83,9 +81,9 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                             View Repo
                         </a>
                     )}
-                    {project.demoUrl && (
+                    {demoUrl && (
                         <a
-                            href={project.demoUrl}
+                            href={demoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-purple/20 text-grub-purple hover:bg-grub-purple/30 transition-colors"

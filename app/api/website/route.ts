@@ -21,8 +21,15 @@ export async function PUT(req: Request) {
   if (trimmed.length > 200) {
     return NextResponse.json({ error: 'URL too long' }, { status: 400 })
   }
-  if (trimmed && !/^https?:\/\/[a-zA-Z0-9]/.test(trimmed)) {
-    return NextResponse.json({ error: 'Must be a valid URL starting with http(s)://' }, { status: 400 })
+  if (trimmed) {
+    try {
+      const url = new URL(trimmed)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return NextResponse.json({ error: 'Must be an HTTP or HTTPS URL' }, { status: 400 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
+    }
   }
 
   await updateWebsiteUrl(session.slackId, trimmed)

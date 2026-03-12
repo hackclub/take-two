@@ -1,7 +1,7 @@
 import { getAllUsers, getSlackProfile, compareUsers } from "@/lib/airtable";
 import { LeaderboardList } from "@/app/components/LeaderboardList";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes
 
 // ← Set the season end date here
 const SEASON_END = new Date("2026-03-31T23:59:59");
