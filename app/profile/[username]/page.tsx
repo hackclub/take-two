@@ -21,9 +21,13 @@ function formatDuration(firstDate: string): string {
 function ProjectCard({ project }: { project: ProfileProject }) {
   const image = project.pictures?.[0]
   const isVerified = project.status === 'built_verified'
+  const cardUrl = project.codeUrl || project.demoUrl
 
   return (
-    <div className={`bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
+    <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
+      {cardUrl && (
+        <a href={cardUrl} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0" />
+      )}
       {image && (
         <div className="aspect-video bg-grub-bg2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -45,16 +49,28 @@ function ProjectCard({ project }: { project: ProfileProject }) {
           <p className="text-sm text-grub-fg3 line-clamp-3 flex-1">{project.description}</p>
         )}
 
-        {project.codeUrl && (
-          <a
-            href={project.codeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block self-start text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
-          >
-            View Repo
-          </a>
-        )}
+        <div className="flex flex-wrap gap-2 relative z-10">
+          {project.codeUrl && (
+            <a
+              href={project.codeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-blue/20 text-grub-blue hover:bg-grub-blue/30 transition-colors"
+            >
+              View Repo
+            </a>
+          )}
+          {project.demoUrl && (
+            <a
+              href={project.demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-purple/20 text-grub-purple hover:bg-grub-purple/30 transition-colors"
+            >
+              Demo
+            </a>
+          )}
+        </div>
       </div>
     </div>
   )

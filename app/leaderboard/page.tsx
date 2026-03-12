@@ -1,82 +1,78 @@
-import Link from 'next/link'
-import { getAllUsers, getSlackProfile, compareUsers } from '@/lib/airtable'
-import { RankBadges } from '@/app/components/RankBadge'
-import { STATUS_LABELS } from '@/lib/status'
+import { getAllUsers, getSlackProfile, compareUsers } from "@/lib/airtable";
+import { LeaderboardList } from "@/app/components/LeaderboardList";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
+
+// ← Set the season end date here
+const SEASON_END = new Date("2026-03-31T23:59:59");
+
+function formatCountdown(end: Date): string | null {
+    const now = new Date();
+    const diffMs = end.getTime() - now.getTime();
+    if (diffMs <= 0) return null;
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(days / 7);
+    const rem = days % 7;
+    if (weeks > 0 && rem > 0)
+        return `${weeks} ${weeks === 1 ? "week" : "weeks"} ${rem} ${rem === 1 ? "day" : "days"}`;
+    if (weeks > 0) return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+    return `${days} ${days === 1 ? "day" : "days"}`;
+}
+
+const PER_PAGE = 10;
 
 export default async function LeaderboardPage() {
-  const users = await getAllUsers()
+    const users = await getAllUsers();
+    const sorted = [...users].sort(compareUsers);
 
-  const sorted = [...users].sort(compareUsers)
+    // Only resolve Slack profiles for the first page
+    const firstPageUsers = sorted.slice(0, PER_PAGE);
+    const profiles = await Promise.all(
+        firstPageUsers.map(async (user) => {
+            const slack = await getSlackProfile(user.slackId);
+            return {
+                username: user.username,
+                statusCounts: user.statusCounts,
+                ranks: user.ranks,
+                avatarUrl: slack?.avatarUrl,
+                displayName: slack?.displayName,
+            };
+        }),
+    );
 
-  const profiles = await Promise.all(
-    sorted.map(async (user) => {
-      const slack = await getSlackProfile(user.slackId)
-      return { ...user, slack }
-    })
-  )
+    const initialData = {
+        users: profiles,
+        page: 1,
+        totalPages: Math.max(1, Math.ceil(sorted.length / PER_PAGE)),
+        total: sorted.length,
+    };
 
-  return (
-    <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-grub-fg0">Leaderboard</h1>
-        <p className="text-sm text-grub-fg4 mt-1">
-          {profiles.length} {profiles.length === 1 ? 'member' : 'members'}
-        </p>
-      </div>
+    return (
+        <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold text-grub-fg0">
+                    Leaderboard
+                </h1>
+                <div className="flex items-center gap-3 mt-1">
+                    <p className="text-sm text-grub-fg4">
+                        {sorted.length}{" "}
+                        {sorted.length === 1 ? "hacker" : "hackers"}
+                    </p>
+                    {formatCountdown(SEASON_END) && (
+                        <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-grub-red/20 text-grub-red">
+                            Season ends in {formatCountdown(SEASON_END)}
+                        </span>
+                    )}
+                </div>
+            </div>
 
-      {profiles.length === 0 ? (
-        <div className="text-center py-16 text-grub-fg4">
-          <p className="text-lg">No members yet</p>
-        </div>
-      ) : (
-        <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 divide-y divide-grub-bg2 overflow-hidden">
-          {profiles.map((user, index) => (
-            <Link
-              key={user.username}
-              href={`/profile/${user.username}`}
-              className="flex items-center gap-4 px-5 py-4 hover:bg-grub-bg2 transition-colors"
-            >
-              <span className="text-lg font-bold text-grub-bg4 w-8 text-center flex-shrink-0">
-                {index + 1}
-              </span>
-
-              {user.slack?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.slack.avatarUrl}
-                  alt={user.slack.displayName}
-                  className="w-10 h-10 rounded-full border border-grub-bg3 flex-shrink-0"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-grub-bg3 flex-shrink-0" />
-              )}
-
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-grub-fg0 truncate">
-                  {user.slack?.displayName ?? user.username}
-                </p>
-                <RankBadges ranks={user.ranks} />
-                <p className="text-xs text-grub-fg4">@{user.username}</p>
-              </div>
-
-              <div className="flex items-center gap-3 flex-shrink-0">
-                {(Object.entries(user.statusCounts) as [keyof typeof user.statusCounts, number][])
-                  .filter(([, count]) => count > 0)
-                  .map(([status, count]) => (
-                    <span
-                      key={status}
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_LABELS[status]?.color ?? 'bg-grub-bg2 text-grub-fg4'}`}
-                    >
-                      {count} {STATUS_LABELS[status]?.short ?? status}
-                    </span>
-                  ))}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </main>
-  )
+            {sorted.length === 0 ? (
+                <div className="text-center py-16 text-grub-fg4">
+                    <p className="text-lg">No members yet</p>
+                </div>
+            ) : (
+                <LeaderboardList initialData={initialData} />
+            )}
+        </main>
+    );
 }

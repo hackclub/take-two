@@ -146,6 +146,7 @@ export interface ProfileProject {
   description?: string
   pictures?: { url: string; filename: string }[]
   codeUrl?: string
+  demoUrl?: string
   approvedAt?: string
   status?: string
   ysws?: string
@@ -178,6 +179,7 @@ function parseProjectRecords(records: any[]): ProfileProject[] {
       description: f['description'] || f['Description (from HARDWARE_ALL)']?.[0] || undefined,
       pictures,
       codeUrl: f['Code URL (from HARDWARE_ALL)']?.[0] || undefined,
+      demoUrl: f['demo_url'] || undefined,
       approvedAt: f['Approved At (from HARDWARE_ALL)']?.[0] || undefined,
       status: f['status'] || undefined,
       ysws: f['YSWS Name'] || undefined,
@@ -331,8 +333,7 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`,
-      { revalidate: 120, tags: ['all-projects'] }
+      `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`
     )
     for (const rec of data.records) {
       const userIds: string[] = rec.fields['Users'] ?? []
@@ -359,8 +360,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
 
   do {
     const data = await airtableFetch(
-      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`,
-      { revalidate: 120, tags: ['all-users'] }
+      `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`
     )
     for (const rec of data.records) {
       if (rec.fields['username']) {
@@ -397,8 +397,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?${offset ? `offset=${offset}` : ''}`,
-      { revalidate: 120, tags: ['all-projects'] }
+      `${patchTable}?${offset ? `offset=${offset}` : ''}`
     )
     for (const rec of data.records) {
       const f = rec.fields
@@ -413,6 +412,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
         description: f['description'] || f['Description (from HARDWARE_ALL)']?.[0] || undefined,
         pictures,
         codeUrl: f['Code URL (from HARDWARE_ALL)']?.[0] || undefined,
+        demoUrl: f['demo_url'] || undefined,
         approvedAt: f['Approved At (from HARDWARE_ALL)']?.[0] || undefined,
         status: f['status'] || undefined,
         ysws: f['YSWS Name'] || undefined,
