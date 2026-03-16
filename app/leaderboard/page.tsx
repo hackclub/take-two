@@ -1,23 +1,8 @@
 import { getAllUsers, getSlackProfile, compareUsers } from "@/lib/airtable";
 import { LeaderboardList } from "@/app/components/LeaderboardList";
+import { SEASON, formatCountdown } from "@/lib/config";
 
 export const revalidate = 300; // 5 minutes
-
-// ← Set the season end date here
-const SEASON_END = new Date("2026-03-31T23:59:59");
-
-function formatCountdown(end: Date): string | null {
-    const now = new Date();
-    const diffMs = end.getTime() - now.getTime();
-    if (diffMs <= 0) return null;
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const weeks = Math.floor(days / 7);
-    const rem = days % 7;
-    if (weeks > 0 && rem > 0)
-        return `${weeks} ${weeks === 1 ? "week" : "weeks"} ${rem} ${rem === 1 ? "day" : "days"}`;
-    if (weeks > 0) return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
-    return `${days} ${days === 1 ? "day" : "days"}`;
-}
 
 const PER_PAGE = 10;
 
@@ -58,9 +43,9 @@ export default async function LeaderboardPage() {
                         {sorted.length}{" "}
                         {sorted.length === 1 ? "hacker" : "hackers"}
                     </p>
-                    {formatCountdown(SEASON_END) && (
+                    {formatCountdown(SEASON.end) && (
                         <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-grub-red/20 text-grub-red">
-                            Season ends in {formatCountdown(SEASON_END)}
+                            Season ends in {formatCountdown(SEASON.end)}
                         </span>
                     )}
                 </div>

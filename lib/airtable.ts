@@ -155,6 +155,7 @@ export interface ProfileProject {
   pictures?: { url: string; filename: string }[]
   codeUrl?: string
   demoUrl?: string
+  blogUrl?: string
   approvedAt?: string
   status?: string
   ysws?: string
@@ -189,6 +190,7 @@ function parseProjectRecords(records: any[]): ProfileProject[] {
       pictures,
       codeUrl: f['Code URL (from HARDWARE_ALL)']?.[0] || undefined,
       demoUrl: f['demo_url'] || undefined,
+      blogUrl: f['blog_url'] || undefined,
       approvedAt: f['Approved At (from HARDWARE_ALL)']?.[0] || undefined,
       status: f['status'] || undefined,
       ysws: f['YSWS Name'] || undefined,
@@ -466,6 +468,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
         pictures,
         codeUrl: f['Code URL (from HARDWARE_ALL)']?.[0] || undefined,
         demoUrl: f['demo_url'] || undefined,
+      blogUrl: f['blog_url'] || undefined,
         approvedAt: f['Approved At (from HARDWARE_ALL)']?.[0] || undefined,
         status: f['status'] || undefined,
         ysws: f['YSWS Name'] || undefined,

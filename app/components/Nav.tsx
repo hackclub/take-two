@@ -2,6 +2,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { SessionData, sessionOptions } from "@/lib/session";
+import { SEASON, formatCountdown } from "@/lib/config";
 import { Logo } from "./Logo";
 
 export async function Nav() {
@@ -24,12 +25,11 @@ export async function Nav() {
                     <Logo />
                 </div>
                 <div className="flex items-center gap-6">
-                    <Link
-                        href="/docs"
-                        className="text-sm font-medium text-grub-fg4 hover:text-grub-fg transition-colors"
-                    >
-                        Docs
-                    </Link>
+                    {formatCountdown(SEASON.end) && (
+                        <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-grub-red/20 text-grub-red">
+                            S{SEASON.number} ends in {formatCountdown(SEASON.end)}
+                        </span>
+                    )}
                     <Link
                         href="/gallery"
                         className="text-sm font-medium text-grub-fg4 hover:text-grub-fg transition-colors"
@@ -41,6 +41,12 @@ export async function Nav() {
                         className="text-sm font-medium text-grub-fg4 hover:text-grub-fg transition-colors"
                     >
                         Leaderboard
+                    </Link>
+                    <Link
+                        href="/docs"
+                        className="text-sm font-medium text-grub-bg bg-grub-green hover:bg-grub-green/80 px-4 py-1.5 rounded-lg transition-colors"
+                    >
+                        Docs
                     </Link>
                     {signedIn ? (
                         <Link

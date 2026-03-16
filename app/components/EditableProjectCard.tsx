@@ -175,20 +175,7 @@ export function EditableProjectCard({
           className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent placeholder-grub-fg4"
         />
       </div>
-      <div>
-        <label className="text-xs text-grub-fg4 mb-0.5 block">Status</label>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-full text-sm bg-grub-bg2 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent"
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Status editing disabled for now */}
       <div className="flex gap-2 justify-end">
         <button
           onClick={handleCancel}

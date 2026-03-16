@@ -24,6 +24,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
   const isVerified = project.status === 'built_verified'
   const codeUrl = safeHref(project.codeUrl)
   const demoUrl = safeHref(project.demoUrl)
+  const blogUrl = safeHref(project.blogUrl)
   const cardUrl = codeUrl || demoUrl
 
   return (
@@ -71,6 +72,16 @@ function ProjectCard({ project }: { project: ProfileProject }) {
               className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-purple/20 text-grub-purple hover:bg-grub-purple/30 transition-colors"
             >
               Demo
+            </a>
+          )}
+          {blogUrl && (
+            <a
+              href={blogUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-grub-yellow/20 text-grub-yellow hover:bg-grub-yellow/30 transition-colors"
+            >
+              Blog
             </a>
           )}
         </div>
