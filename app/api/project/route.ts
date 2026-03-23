@@ -4,18 +4,19 @@ import { cookies } from 'next/headers'
 import { SessionData, sessionOptions } from '@/lib/session'
 import { updateProjectField } from '@/lib/airtable'
 
-const ALLOWED_FIELDS = ['project name', 'description', 'demo_url', 'status', 'pictures'] as const
+const ALLOWED_FIELDS = ['project name', 'description', 'demo_url', 'blog_url', 'status', 'pictures'] as const
 type AllowedField = (typeof ALLOWED_FIELDS)[number]
 
 const MAX_LENGTHS: Record<AllowedField, number> = {
   'project name': 200,
   description: 1000,
   demo_url: 500,
+  blog_url: 500,
   status: 50,
   pictures: 500,
 }
 
-const URL_FIELDS = new Set<string>(['demo_url', 'pictures'])
+const URL_FIELDS = new Set<string>(['demo_url', 'blog_url', 'pictures'])
 const VALID_STATUSES = new Set(['built_verified', 'built_needs_revision', 'design_only'])
 
 export async function PUT(request: NextRequest) {

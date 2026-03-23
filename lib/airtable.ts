@@ -68,7 +68,7 @@ export async function getProjectsByEmail(email: string): Promise<HardwareProject
   do {
     const data = await airtableFetch(
       `${table}?filterByFormula=${formula}${offset ? `&offset=${offset}` : ''}`,
-      { revalidate: 300, tags: ['hw-projects'] }
+      offset ? {} : { revalidate: 300, tags: ['hw-projects'] }
     )
     for (const record of data.records) {
       results.push({
@@ -310,7 +310,7 @@ export async function updateGithubUrl(slackId: string, githubUrl: string): Promi
 export async function updateProjectField(
   slackId: string,
   projectId: string,
-  field: 'project name' | 'description' | 'demo_url' | 'status' | 'pictures',
+  field: 'project name' | 'description' | 'demo_url' | 'blog_url' | 'status' | 'pictures',
   value: string
 ): Promise<void> {
   // Verify the project belongs to this user
@@ -385,7 +385,7 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
   do {
     const data = await airtableFetch(
       `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`,
-      { revalidate: 300, tags: ['all-projects'] }
+      offset ? {} : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const userIds: string[] = rec.fields['Users'] ?? []
@@ -413,7 +413,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
   do {
     const data = await airtableFetch(
       `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`,
-      { revalidate: 300, tags: ['all-users'] }
+      offset ? {} : { revalidate: 300, tags: ['all-users'] }
     )
     for (const rec of data.records) {
       if (rec.fields['username']) {
@@ -452,7 +452,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
   do {
     const data = await airtableFetch(
       `${patchTable}?${offset ? `offset=${offset}` : ''}`,
-      { revalidate: 300, tags: ['all-projects'] }
+      offset ? {} : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const f = rec.fields

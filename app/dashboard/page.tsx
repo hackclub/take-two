@@ -73,6 +73,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                     initialName={project.name ?? ''}
                     initialDescription={project.description ?? ''}
                     initialDemoUrl={project.demoUrl ?? ''}
+                    initialBlogUrl={project.blogUrl ?? ''}
                     initialStatus={project.status ?? 'design_only'}
                     initialImageUrl={project.pictures?.[0]?.url ?? ''}
                 />
