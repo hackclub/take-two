@@ -28,7 +28,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
   const cardUrl = codeUrl || demoUrl
 
   return (
-    <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
+    <div className={`relative bg-grub-bg1 rounded-md border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
       {cardUrl && (
         <a href={cardUrl} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0" />
       )}
@@ -92,8 +92,8 @@ function ProjectCard({ project }: { project: ProfileProject }) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-grub-bg1 border border-grub-bg2 rounded-lg px-5 py-4 text-center">
-      <p className="text-2xl font-bold text-grub-fg0">{value}</p>
+    <div className="bg-grub-bg1 border border-grub-bg2 rounded px-5 py-4 text-center">
+      <p className="text-2xl font-semibold text-grub-fg0">{value}</p>
       <p className="text-xs text-grub-fg4 mt-1">{label}</p>
     </div>
   )
@@ -119,19 +119,19 @@ export default async function ProfilePage({
   const hackingSince = approvedDates.length > 0 ? approvedDates[0] : null
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
-      <header className="flex items-start gap-6">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+      <header className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
         {slackProfile?.avatarUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={slackProfile.avatarUrl}
             alt={slackProfile.displayName}
-            className="w-24 h-24 rounded-full border-2 border-grub-bg3"
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-grub-bg3"
           />
         )}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-grub-fg0">
+        <div className="space-y-3 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-grub-fg0">
               {slackProfile?.displayName ?? profile.username}
             </h1>
             {profile.leaderboardPosition && (
@@ -143,7 +143,7 @@ export default async function ProfilePage({
 
           <RankBadges ranks={profile.ranks} />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center sm:justify-start gap-3">
             <p className="text-sm text-grub-fg4">@{profile.username}</p>
             {safeHref(profile.githubUrl) && (
               <a

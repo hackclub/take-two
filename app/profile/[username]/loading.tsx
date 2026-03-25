@@ -16,7 +16,7 @@ export default function ProfileLoading() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-grub-bg1 border border-grub-bg2 rounded-lg px-5 py-4 text-center">
+          <div key={i} className="bg-grub-bg1 border border-grub-bg2 rounded px-5 py-4 text-center">
             <Skeleton className="h-8 w-12 mx-auto" />
             <Skeleton className="h-3 w-16 mx-auto mt-2" />
           </div>
@@ -27,7 +27,7 @@ export default function ProfileLoading() {
         <Skeleton className="h-6 w-24" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-grub-bg1 rounded-xl border border-grub-bg2 overflow-hidden">
+            <div key={i} className="bg-grub-bg1 rounded-md border border-grub-bg2 overflow-hidden">
               <Skeleton className="aspect-video rounded-none" />
               <div className="p-5 space-y-3">
                 <Skeleton className="h-5 w-3/4" />

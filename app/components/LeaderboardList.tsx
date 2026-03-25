@@ -25,9 +25,9 @@ function UserRow({ user, rank }: { user: LeaderboardUser; rank: number }) {
   return (
     <Link
       href={`/profile/${user.username}`}
-      className="flex items-center gap-4 px-5 py-4 hover:bg-grub-bg2 transition-colors"
+      className="flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4 hover:bg-grub-bg2 transition-colors"
     >
-      <span className="text-lg font-bold text-grub-bg4 w-8 text-center flex-shrink-0">
+      <span className="text-lg font-semibold text-grub-bg4 w-8 text-center flex-shrink-0">
         {rank}
       </span>
 
@@ -36,21 +36,21 @@ function UserRow({ user, rank }: { user: LeaderboardUser; rank: number }) {
         <img
           src={user.avatarUrl}
           alt={user.displayName || user.username}
-          className="w-10 h-10 rounded-full border border-grub-bg3 flex-shrink-0"
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-grub-bg3 flex-shrink-0"
         />
       ) : (
-        <div className="w-10 h-10 rounded-full bg-grub-bg3 flex-shrink-0" />
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-grub-bg3 flex-shrink-0" />
       )}
 
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-grub-fg0 truncate">
+        <p className="font-semibold text-grub-fg0 truncate text-sm sm:text-base">
           {user.displayName ?? user.username}
         </p>
         <RankBadges ranks={user.ranks} />
         <p className="text-xs text-grub-fg4">@{user.username}</p>
       </div>
 
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
         {(
           Object.entries(user.statusCounts) as [
             keyof typeof user.statusCounts,
@@ -128,7 +128,7 @@ export function LeaderboardList({ initialData }: { initialData: PageData }) {
 
   return (
     <>
-      <div className="bg-grub-bg1 rounded-xl border border-grub-bg2 divide-y divide-grub-bg2 overflow-hidden">
+      <div className="bg-grub-bg1 rounded-md border border-grub-bg2 divide-y divide-grub-bg2 overflow-hidden">
         {loading
           ? Array.from({ length: 10 }, (_, i) => <SkeletonRow key={i} />)
           : data.users.map((user, index) => (
@@ -142,7 +142,7 @@ export function LeaderboardList({ initialData }: { initialData: PageData }) {
             <button
               onClick={() => fetchPage(page - 1)}
               disabled={loading}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg bg-grub-bg1 border border-grub-bg2 text-grub-fg4 hover:text-grub-fg hover:border-grub-bg4 transition-colors disabled:opacity-50"
+              className="text-sm font-medium px-3 py-1.5 rounded bg-grub-bg1 border border-grub-bg2 text-grub-fg4 hover:text-grub-fg hover:border-grub-bg4 transition-colors disabled:opacity-50"
             >
               Previous
             </button>
@@ -154,7 +154,7 @@ export function LeaderboardList({ initialData }: { initialData: PageData }) {
             <button
               onClick={() => fetchPage(page + 1)}
               disabled={loading}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg bg-grub-bg1 border border-grub-bg2 text-grub-fg4 hover:text-grub-fg hover:border-grub-bg4 transition-colors disabled:opacity-50"
+              className="text-sm font-medium px-3 py-1.5 rounded bg-grub-bg1 border border-grub-bg2 text-grub-fg4 hover:text-grub-fg hover:border-grub-bg4 transition-colors disabled:opacity-50"
             >
               Next
             </button>

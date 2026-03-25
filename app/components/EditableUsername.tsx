@@ -84,7 +84,7 @@ export function EditableUsername({ initialUsername }: { initialUsername: string 
           onChange={(e) => setUsername(e.target.value.slice(0, 30).toLowerCase())}
           maxLength={30}
           autoFocus
-          className="text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent w-40"
+          className="text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent w-full max-w-40"
         />
       </div>
       {error && <p className="text-xs text-grub-red">{error}</p>}

@@ -12,7 +12,7 @@ export default function LeaderboardLoading() {
 
       <div className="space-y-2">
         {[...Array(10)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-4 bg-grub-bg1 rounded-xl border border-grub-bg2">
+          <div key={i} className="flex items-center gap-4 p-4 bg-grub-bg1 rounded-md border border-grub-bg2">
             <Skeleton className="h-6 w-8" />
             <Skeleton className="w-10 h-10 rounded-full" />
             <div className="flex-1 space-y-2">

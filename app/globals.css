@@ -1,3 +1,126 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme="gruvbox"] {
+    --color-bg: 40 40 40;       /* #282828 */
+    --color-bg1: 60 56 54;      /* #3c3836 */
+    --color-bg2: 80 73 69;      /* #504945 */
+    --color-bg3: 102 92 84;     /* #665c54 */
+    --color-bg4: 124 111 100;   /* #7c6f64 */
+    --color-fg: 235 219 178;    /* #ebdbb2 */
+    --color-fg0: 251 241 199;   /* #fbf1c7 */
+    --color-fg2: 213 196 161;   /* #d5c4a1 */
+    --color-fg3: 213 196 161;   /* #d5c4a1 (was #bdae93) */
+    --color-fg4: 189 174 147;   /* #bdae93 (was #a89984) */
+    --color-red: 251 73 52;     /* #fb4934 */
+    --color-green: 184 187 38;  /* #b8bb26 */
+    --color-yellow: 250 189 47; /* #fabd2f */
+    --color-blue: 131 165 152;  /* #83a598 */
+    --color-purple: 211 134 155;/* #d3869b */
+    --color-aqua: 142 192 124;  /* #8ec07c */
+    --color-orange: 254 128 25; /* #fe8019 */
+  }
+
+  [data-theme="rosepine"] {
+    --color-bg: 25 23 36;       /* #191724 */
+    --color-bg1: 31 29 46;      /* #1f1d2e */
+    --color-bg2: 38 35 58;      /* #26233a */
+    --color-bg3: 68 65 90;      /* #44415a */
+    --color-bg4: 110 106 134;   /* #6e6a86 */
+    --color-fg: 224 222 244;    /* #e0def4 */
+    --color-fg0: 224 222 244;   /* #e0def4 */
+    --color-fg2: 224 222 244;   /* #e0def4 */
+    --color-fg3: 178 175 205;   /* #b2afcd (was #908caa) */
+    --color-fg4: 144 140 170;   /* #908caa (was #6e6a86) */
+    --color-red: 235 111 146;   /* #eb6f92 */
+    --color-green: 156 207 216; /* #9ccfd8 */
+    --color-yellow: 246 193 119;/* #f6c177 */
+    --color-blue: 49 116 143;   /* #31748f */
+    --color-purple: 196 167 231;/* #c4a7e7 */
+    --color-aqua: 156 207 216;  /* #9ccfd8 */
+    --color-orange: 235 188 186;/* #ebbcba */
+  }
+
+  [data-theme="rosepine-dawn"] {
+    --color-bg: 250 244 237;    /* #faf4ed */
+    --color-bg1: 255 250 243;   /* #fffaf3 */
+    --color-bg2: 242 233 222;   /* #f2e9de */
+    --color-bg3: 215 202 187;   /* #d7cabb */
+    --color-bg4: 152 147 165;   /* #9893a5 */
+    --color-fg: 87 82 121;      /* #575279 */
+    --color-fg0: 55 50 90;      /* #37325a (was #575279, darker for headings) */
+    --color-fg2: 87 82 121;     /* #575279 */
+    --color-fg3: 87 82 121;     /* #575279 (was #797593) */
+    --color-fg4: 110 105 140;   /* #6e698c (was #9893a5) */
+    --color-red: 180 99 122;    /* #b4637a */
+    --color-green: 86 148 159;  /* #56949f */
+    --color-yellow: 214 137 32; /* #d68920 (was #ea9d34, darker for contrast) */
+    --color-blue: 40 105 131;   /* #286983 */
+    --color-purple: 124 102 149;/* #7c6695 (was #907aa9, darker) */
+    --color-aqua: 86 148 159;   /* #56949f */
+    --color-orange: 195 110 106;/* #c36e6a (was #d7827e, darker) */
+  }
+
+  [data-theme="catppuccin"] {
+    --color-bg: 30 30 46;       /* #1e1e2e */
+    --color-bg1: 49 50 68;      /* #313244 */
+    --color-bg2: 69 71 90;      /* #45475a */
+    --color-bg3: 88 91 112;     /* #585b70 */
+    --color-bg4: 108 112 134;   /* #6c7086 */
+    --color-fg: 205 214 244;    /* #cdd6f4 */
+    --color-fg0: 205 214 244;   /* #cdd6f4 */
+    --color-fg2: 186 194 222;   /* #bac2de */
+    --color-fg3: 186 194 222;   /* #bac2de (was #a6adc8) */
+    --color-fg4: 166 173 200;   /* #a6adc8 (was #6c7086) */
+    --color-red: 243 139 168;   /* #f38ba8 */
+    --color-green: 166 227 161; /* #a6e3a1 */
+    --color-yellow: 249 226 175;/* #f9e2af */
+    --color-blue: 137 180 250;  /* #89b4fa */
+    --color-purple: 203 166 247;/* #cba6f7 */
+    --color-aqua: 148 226 213;  /* #94e2d5 */
+    --color-orange: 250 179 135;/* #fab387 */
+  }
+
+  [data-theme="tokyonight"] {
+    --color-bg: 26 27 38;       /* #1a1b26 */
+    --color-bg1: 36 40 59;      /* #24283b */
+    --color-bg2: 52 59 88;      /* #343b58 */
+    --color-bg3: 68 75 106;     /* #444b6a */
+    --color-bg4: 86 95 137;     /* #565f89 */
+    --color-fg: 169 177 214;    /* #a9b1d6 */
+    --color-fg0: 192 202 245;   /* #c0caf5 */
+    --color-fg2: 169 177 214;   /* #a9b1d6 */
+    --color-fg3: 148 155 199;   /* #949bc7 (was #565f89) */
+    --color-fg4: 122 130 170;   /* #7a82aa (was #444b6a) */
+    --color-red: 247 118 142;   /* #f7768e */
+    --color-green: 158 206 106; /* #9ece6a */
+    --color-yellow: 224 175 104;/* #e0af68 */
+    --color-blue: 122 162 247;  /* #7aa2f7 */
+    --color-purple: 187 154 247;/* #bb9af7 */
+    --color-aqua: 125 207 207;  /* #7dcfcf */
+    --color-orange: 255 158 100;/* #ff9e64 */
+  }
+}
+
+@layer components {
+  /* Smooth scrollbar hiding for mobile nav */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prose image captions */
+  .prose img + em {
+    display: block;
+    text-align: center;
+    font-size: 0.85em;
+    margin-top: -0.5em;
+    color: rgb(var(--color-fg4));
+  }
+}

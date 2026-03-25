@@ -33,9 +33,9 @@ export default async function LeaderboardPage() {
     };
 
     return (
-        <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-grub-fg0">
+                <h1 className="text-2xl font-semibold text-grub-fg0">
                     Leaderboard
                 </h1>
                 <div className="flex items-center gap-3 mt-1">

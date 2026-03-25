@@ -1,5 +1,28 @@
 import { revalidateTag } from 'next/cache'
 
+// --- In-memory TTL cache for expensive paginated queries ---
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const memCache = new Map<string, { data: any; expires: number }>()
+
+function getCached<T>(key: string): T | undefined {
+  const entry = memCache.get(key)
+  if (entry && Date.now() < entry.expires) return entry.data as T
+  memCache.delete(key)
+  return undefined
+}
+
+function setCache<T>(key: string, data: T, ttlMs: number): T {
+  memCache.set(key, { data, expires: Date.now() + ttlMs })
+  return data
+}
+
+export function invalidateCache(prefix: string) {
+  for (const key of memCache.keys()) {
+    if (key.startsWith(prefix)) memCache.delete(key)
+  }
+}
+
 // --- Helpers ---
 
 /** Escape a value for use inside an Airtable filterByFormula string literal. */
@@ -68,7 +91,7 @@ export async function getProjectsByEmail(email: string): Promise<HardwareProject
   do {
     const data = await airtableFetch(
       `${table}?filterByFormula=${formula}${offset ? `&offset=${offset}` : ''}`,
-      offset ? {} : { revalidate: 300, tags: ['hw-projects'] }
+      offset ? undefined : { revalidate: 300, tags: ['hw-projects'] }
     )
     for (const record of data.records) {
       results.push({
@@ -292,6 +315,8 @@ export async function updateUsername(slackId: string, username: string): Promise
   })
   revalidateTag('user-profile')
   revalidateTag('all-users')
+  invalidateCache('allUsers')
+  invalidateCache('projectStatus')
 }
 
 export async function updateGithubUrl(slackId: string, githubUrl: string): Promise<void> {
@@ -331,6 +356,7 @@ export async function updateProjectField(
     body: JSON.stringify({ fields: { [field]: fieldValue } }),
   })
   revalidateTag('user-projects')
+  invalidateCache('allProjects')
 }
 
 export async function updateWebsiteUrl(slackId: string, websiteUrl: string): Promise<void> {
@@ -378,6 +404,9 @@ export function compareUsers(a: UserSummary, b: UserSummary): number {
 }
 
 async function getProjectStatusByUser(): Promise<Map<string, { built_verified: number; built_needs_revision: number; design_only: number }>> {
+  const cached = getCached<Map<string, { built_verified: number; built_needs_revision: number; design_only: number }>>('projectStatus')
+  if (cached) return cached
+
   const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
   const counts = new Map<string, { built_verified: number; built_needs_revision: number; design_only: number }>()
   let offset: string | undefined
@@ -385,7 +414,7 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
   do {
     const data = await airtableFetch(
       `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`,
-      offset ? {} : { revalidate: 300, tags: ['all-projects'] }
+      offset ? undefined : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const userIds: string[] = rec.fields['Users'] ?? []
@@ -401,10 +430,13 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
     offset = data.offset
   } while (offset)
 
-  return counts
+  return setCache('projectStatus', counts, 5 * 60 * 1000)
 }
 
 export async function getAllUsers(): Promise<UserSummary[]> {
+  const cached = getCached<UserSummary[]>('allUsers')
+  if (cached) return cached
+
   const table = process.env.USER_AIRTABLE_TABLE_ID
   const [allRanks, statusByUser] = await Promise.all([getAllRanks(), getProjectStatusByUser()])
   const results: UserSummary[] = []
@@ -413,7 +445,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
   do {
     const data = await airtableFetch(
       `${table}?fields[]=username&fields[]=Slack+ID&fields[]=Projects&fields[]=Ranks${offset ? `&offset=${offset}` : ''}`,
-      offset ? {} : { revalidate: 300, tags: ['all-users'] }
+      offset ? undefined : { revalidate: 300, tags: ['all-users'] }
     )
     for (const rec of data.records) {
       if (rec.fields['username']) {
@@ -433,7 +465,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
     offset = data.offset
   } while (offset)
 
-  return results
+  return setCache('allUsers', results, 5 * 60 * 1000)
 }
 
 // --- Gallery: all projects (patch-first, fallback to HARDWARE_ALL) ---
@@ -445,6 +477,9 @@ export interface GalleryProject extends ProfileProject {
 }
 
 export async function getAllProjects(): Promise<GalleryProject[]> {
+  const cached = getCached<GalleryProject[]>('allProjects')
+  if (cached) return cached
+
   const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
   const results: GalleryProject[] = []
   let offset: string | undefined
@@ -452,7 +487,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
   do {
     const data = await airtableFetch(
       `${patchTable}?${offset ? `offset=${offset}` : ''}`,
-      offset ? {} : { revalidate: 300, tags: ['all-projects'] }
+      offset ? undefined : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const f = rec.fields
@@ -480,7 +515,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
     offset = data.offset
   } while (offset)
 
-  return results
+  return setCache('allProjects', results, 5 * 60 * 1000)
 }
 
 // --- User & Project sync ---
@@ -504,6 +539,8 @@ async function createUser(slackId: string, username: string, email: string): Pro
     }),
   })
   revalidateTag('all-users')
+  invalidateCache('allUsers')
+  invalidateCache('projectStatus')
   return data.id
 }
 
@@ -710,8 +747,11 @@ export async function syncUserProjects(
   }
 
   revalidateTag('user-projects')
+  invalidateCache('allProjects')
   revalidateTag('user-profile')
   revalidateTag('all-users')
+  invalidateCache('allUsers')
+  invalidateCache('projectStatus')
 
   return userRecordId
 }

@@ -12,7 +12,7 @@ export default async function Home() {
     const signedIn = !!session.email;
 
     return (
-        <main className="max-w-4xl w-full mx-auto px-6 py-16 flex flex-col items-center">
+        <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 flex flex-col items-center">
             <article className="prose prose-gruvbox">
                 <Landing />
             </article>
@@ -20,14 +20,14 @@ export default async function Home() {
                 {signedIn ? (
                     <Link
                         href="/dashboard"
-                        className="text-lg font-semibold text-grub-bg bg-grub-red hover:bg-grub-red/80 px-8 py-3 rounded-lg transition-colors"
+                        className="text-base sm:text-lg font-semibold text-grub-bg bg-grub-red hover:bg-grub-red/80 px-6 sm:px-8 py-3 rounded transition-colors"
                     >
                         Dashboard
                     </Link>
                 ) : (
                     <a
                         href="/api/auth/login"
-                        className="text-lg font-semibold text-grub-bg bg-grub-red hover:bg-grub-red/80 px-8 py-3 rounded-lg transition-colors"
+                        className="text-base sm:text-lg font-semibold text-grub-bg bg-grub-red hover:bg-grub-red/80 px-6 sm:px-8 py-3 rounded transition-colors"
                     >
                         Sign in
                     </a>
@@ -35,19 +35,19 @@ export default async function Home() {
                 <div className="flex flex-wrap justify-center gap-3">
                     <Link
                         href="/docs"
-                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded-lg border border-grub-bg2 transition-colors"
+                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded border border-grub-bg2 transition-colors"
                     >
                         Docs
                     </Link>
                     <Link
                         href="/gallery"
-                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded-lg border border-grub-bg2 transition-colors"
+                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded border border-grub-bg2 transition-colors"
                     >
                         Gallery
                     </Link>
                     <Link
                         href="/leaderboard"
-                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded-lg border border-grub-bg2 transition-colors"
+                        className="text-sm font-medium text-grub-fg4 bg-grub-bg1 hover:bg-grub-bg2 px-5 py-2 rounded border border-grub-bg2 transition-colors"
                     >
                         Leaderboard
                     </Link>

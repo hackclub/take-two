@@ -14,14 +14,14 @@ function ProjectCard({ project }: { project: GalleryProject }) {
   const cardUrl = codeUrl || demoUrl
 
   return (
-    <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
+    <div className={`relative bg-grub-bg1 rounded-md border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? 'border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30' : 'border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50'}`}>
       {cardUrl && (
         <a href={cardUrl} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0" />
       )}
       {image && (
         <div className="aspect-video bg-grub-bg2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image.url} alt={image.filename} className="w-full h-full object-cover" />
+          <img src={image.url} alt={image.filename} loading="lazy" className="w-full h-full object-cover" />
         </div>
       )}
       <div className="p-5 space-y-3 flex flex-col flex-1">
@@ -82,6 +82,7 @@ function ProjectCard({ project }: { project: GalleryProject }) {
               <img
                 src={project.ownerProfilePicture}
                 alt={project.ownerUsername}
+                loading="lazy"
                 className="w-6 h-6 rounded-full border border-grub-bg3"
               />
             )}
@@ -99,9 +100,9 @@ export default async function GalleryPage() {
   const projects = await getAllProjects()
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-grub-fg0">Gallery</h1>
+        <h1 className="text-2xl font-semibold text-grub-fg0">Gallery</h1>
         <p className="text-sm text-grub-fg4 mt-1">
           {projects.length} {projects.length === 1 ? 'project' : 'projects'}
         </p>

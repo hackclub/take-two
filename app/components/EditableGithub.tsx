@@ -94,7 +94,7 @@ export function EditableGithub({ initialUrl }: { initialUrl: string }) {
           onChange={(e) => setUrl(e.target.value)}
           autoFocus
           placeholder="https://github.com/username"
-          className="text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent w-64 placeholder-grub-fg4"
+          className="text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent w-full max-w-64 placeholder-grub-fg4"
         />
       </div>
       {error && <p className="text-xs text-grub-red">{error}</p>}

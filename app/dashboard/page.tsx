@@ -36,9 +36,16 @@ function ProjectCard({ project }: { project: ProfileProject }) {
     const cardUrl = codeUrl || demoUrl;
 
     return (
-        <div className={`relative bg-grub-bg1 rounded-xl border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? "border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30" : "border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50"}`}>
+        <div
+            className={`relative bg-grub-bg1 rounded-md border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${isVerified ? "border-grub-green/50 shadow-lg shadow-grub-green/20 ring-1 ring-grub-green/20 hover:border-grub-green hover:shadow-xl hover:shadow-grub-green/30" : "border-grub-bg2 hover:border-grub-bg4 hover:shadow-lg hover:shadow-grub-bg/50"}`}
+        >
             {cardUrl && (
-                <a href={cardUrl} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-0" />
+                <a
+                    href={cardUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 z-0"
+                />
             )}
             {image && (
                 <div className="aspect-video bg-grub-bg2 overflow-hidden">
@@ -66,16 +73,18 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                     )}
                 </div>
 
-                <p className="text-xs text-grub-fg4/50 font-mono relative z-10 select-all">{project.id}</p>
+                <p className="text-xs text-grub-fg4/50 font-mono relative z-10 select-all">
+                    {project.id}
+                </p>
 
                 <EditableProjectCard
                     projectId={project.id}
-                    initialName={project.name ?? ''}
-                    initialDescription={project.description ?? ''}
-                    initialDemoUrl={project.demoUrl ?? ''}
-                    initialBlogUrl={project.blogUrl ?? ''}
-                    initialStatus={project.status ?? 'design_only'}
-                    initialImageUrl={project.pictures?.[0]?.url ?? ''}
+                    initialName={project.name ?? ""}
+                    initialDescription={project.description ?? ""}
+                    initialDemoUrl={project.demoUrl ?? ""}
+                    initialBlogUrl={project.blogUrl ?? ""}
+                    initialStatus={project.status ?? "design_only"}
+                    initialImageUrl={project.pictures?.[0]?.url ?? ""}
                 />
 
                 <div className="flex flex-wrap gap-2 relative z-10">
@@ -134,11 +143,25 @@ export default async function Dashboard() {
     const emails = profile?.emails ?? "";
 
     return (
-        <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-            <div className="text-3xl font-bold text-grub-fg0">
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+            <div className="text-3xl font-semibold text-grub-fg0 -pb-8 -mb-6">
                 <h1>Dashboard</h1>
             </div>
-            <header className="flex items-start justify-between gap-6">
+            <div>
+                <p className="text-md text-grub-fg4 pb-4 italic">
+                    Here's what's poppin!
+                </p>
+                <p className="text-md text-grub-fg4">
+                    If it's your first time, you probably want to check out{" "}
+                    <a
+                        href="/docs"
+                        className="text-grub-blue hover:underline font-semibold"
+                    >
+                        the info page.
+                    </a>
+                </p>
+            </div>
+            <header className="flex flex-col sm:flex-row items-start justify-between gap-6">
                 <div className="flex items-center gap-4">
                     {slackProfile?.avatarUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -149,7 +172,7 @@ export default async function Dashboard() {
                         />
                     )}
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-bold text-grub-fg0">
+                        <h1 className="text-2xl font-semibold text-grub-fg0">
                             {slackProfile?.displayName ?? session.name}
                         </h1>
                         {profile?.ranks && <RankBadges ranks={profile.ranks} />}
@@ -161,7 +184,7 @@ export default async function Dashboard() {
                         <p className="text-sm text-grub-fg4">{session.email}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex items-center gap-3 flex-shrink-0 flex-wrap">
                     {profile?.username && (
                         <ShareButton username={profile.username} />
                     )}
@@ -183,7 +206,7 @@ export default async function Dashboard() {
                 </div>
             </header>
 
-            <div className="max-w-md space-y-4">
+            <div className="max-w-full space-y-4 flex flex-row justify-between">
                 <div>
                     <p className="text-xs font-medium text-grub-fg4 uppercase tracking-wide mb-1">
                         Bio
@@ -223,11 +246,16 @@ export default async function Dashboard() {
                         <div key={group.key} className="space-y-3">
                             <h3 className="text-sm font-medium text-grub-fg4 uppercase tracking-wide">
                                 {group.label}
-                                <span className="ml-2 text-grub-fg4/60">{group.projects.length}</span>
+                                <span className="ml-2 text-grub-fg4/60">
+                                    {group.projects.length}
+                                </span>
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {group.projects.map((project) => (
-                                    <ProjectCard key={project.id} project={project} />
+                                    <ProjectCard
+                                        key={project.id}
+                                        project={project}
+                                    />
                                 ))}
                             </div>
                         </div>

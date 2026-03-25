@@ -40,7 +40,7 @@ export default function ImpersonatePage() {
           <div className="inline-block text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full mb-3">
             Dev only
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Impersonate User</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Impersonate User</h1>
           <p className="mt-1 text-sm text-gray-500">
             Enter a Slack ID to view their projects
           </p>
@@ -52,12 +52,12 @@ export default function ImpersonatePage() {
             value={slackId}
             onChange={(e) => setSlackId(e.target.value)}
             placeholder="U01234ABCDE"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ec3750] focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#ec3750] focus:border-transparent"
             autoFocus
           />
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
               {error}
             </div>
           )}
@@ -65,7 +65,7 @@ export default function ImpersonatePage() {
           <button
             type="submit"
             disabled={loading || !slackId.trim()}
-            className="w-full px-6 py-2.5 bg-[#ec3750] text-white font-semibold rounded-lg hover:bg-[#d42f45] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-2.5 bg-[#ec3750] text-white font-semibold rounded hover:bg-[#d42f45] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Looking up…' : 'Impersonate'}
           </button>

@@ -82,7 +82,7 @@ export function EditableEmails({ initialEmails }: { initialEmails: string }) {
         maxLength={2000}
         rows={4}
         autoFocus
-        className="w-full text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent resize-none placeholder-grub-fg4 font-mono"
+        className="w-full text-sm bg-grub-bg1 border border-grub-bg3 text-grub-fg rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-grub-red focus:border-transparent resize-none placeholder-grub-fg4 font-mono"
         placeholder={"email1@example.com\nemail2@example.com"}
       />
       <p className="text-xs text-grub-fg4">One email per line, max 10</p>
