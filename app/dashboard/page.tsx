@@ -17,6 +17,7 @@ import { EditableWebsite } from "@/app/components/EditableWebsite";
 import { EditableEmails } from "@/app/components/EditableEmails";
 import { EditableProjectCard } from "@/app/components/EditableProjectCard";
 import { safeHref } from "@/lib/sanitize";
+import { proxyImageUrl } from "@/lib/image";
 import { STATUS_LABELS, groupByStatus } from "@/lib/status";
 
 function ProjectCard({ project }: { project: ProfileProject }) {
@@ -51,7 +52,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
                 <div className="aspect-video bg-grub-bg2 overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                        src={image.url}
+                        src={proxyImageUrl(image.url)}
                         alt={image.filename}
                         className="w-full h-full object-cover"
                     />
@@ -166,7 +167,7 @@ export default async function Dashboard() {
                     {slackProfile?.avatarUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={slackProfile.avatarUrl}
+                            src={proxyImageUrl(slackProfile.avatarUrl)}
                             alt={slackProfile.displayName}
                             className="w-14 h-14 rounded-full border border-grub-bg3"
                         />
@@ -239,7 +240,9 @@ export default async function Dashboard() {
                 </h2>
                 {projects.length === 0 ? (
                     <div className="text-center py-16 text-grub-fg4">
-                        <p className="text-lg">No projects yet</p>
+                        <p className="text-lg">
+                            You don't have any hardware projects!
+                        </p>
                     </div>
                 ) : (
                     groupByStatus(projects).map((group) => (

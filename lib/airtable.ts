@@ -45,28 +45,58 @@ interface AirtableFetchOptions extends RequestInit {
   tags?: string[]
 }
 
+const RETRY_STATUS_CODES = new Set([429, 500, 502, 503])
+const MAX_RETRIES = 2
+const BASE_DELAY_MS = 200
+
+/** Retries an entire paginated operation from scratch on failure (e.g. stale offset tokens). */
+async function withPaginationRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      if (attempt < MAX_RETRIES && err instanceof Error && /Airtable error: (422|429|500|502|503)/.test(err.message)) {
+        const delay = BASE_DELAY_MS * 2 ** attempt
+        console.warn(`${label} failed, restarting pagination in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES}): ${err.message}`)
+        await new Promise(r => setTimeout(r, delay))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error(`${label} failed after ${MAX_RETRIES} retries`)
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function airtableFetch(tablePath: string, options?: AirtableFetchOptions): Promise<any> {
   const { revalidate, tags, ...fetchOptions } = options ?? {}
 
-  const res = await fetch(
-    `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${tablePath}`,
-    {
-      ...fetchOptions,
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-        ...fetchOptions.headers,
-      },
-      ...(revalidate != null
-        ? { next: { revalidate, tags } }
-        : { cache: 'no-store' as const }),
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const res = await fetch(
+      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${tablePath}`,
+      {
+        ...fetchOptions,
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+          ...fetchOptions.headers,
+        },
+        ...(revalidate != null
+          ? { next: { revalidate, tags } }
+          : { cache: 'no-store' as const }),
+      }
+    )
+    if (res.ok) return res.json()
+
+    if (attempt < MAX_RETRIES && RETRY_STATUS_CODES.has(res.status)) {
+      const delay = BASE_DELAY_MS * 2 ** attempt
+      console.warn(`Airtable ${res.status} on ${tablePath}, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`)
+      await new Promise(r => setTimeout(r, delay))
+      continue
     }
-  )
-  if (!res.ok) {
+
     throw new Error(`Airtable error: ${res.status} ${await res.text()}`)
   }
-  return res.json()
 }
 
 // --- HARDWARE_ALL ---
@@ -82,6 +112,7 @@ export interface HardwareProject {
 }
 
 export async function getProjectsByEmail(email: string): Promise<HardwareProject[]> {
+  return withPaginationRetry(async () => {
   const table = process.env.AIRTABLE_TABLE_ID
   const formula = encodeURIComponent(`{Email}="${escapeFormulaValue(email)}"`)
 
@@ -112,6 +143,7 @@ export async function getProjectsByEmail(email: string): Promise<HardwareProject
   } while (offset)
 
   return results
+  }, 'getProjectsByEmail')
 }
 
 // --- Slack profile ---
@@ -201,6 +233,7 @@ function parseProjectRecords(records: any[]): ProfileProject[] {
   const projects: ProfileProject[] = []
   for (const rec of records) {
     const f = rec.fields
+    if (f['hide?']) continue
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pictures = f['pictures']?.map((a: any) => ({ url: a.url, filename: a.filename }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -407,16 +440,18 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
   const cached = getCached<Map<string, { built_verified: number; built_needs_revision: number; design_only: number }>>('projectStatus')
   if (cached) return cached
 
+  return withPaginationRetry(async () => {
   const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
   const counts = new Map<string, { built_verified: number; built_needs_revision: number; design_only: number }>()
   let offset: string | undefined
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?fields[]=status&fields[]=Users${offset ? `&offset=${offset}` : ''}`,
+      `${patchTable}?fields[]=status&fields[]=Users&fields[]=hide%3F${offset ? `&offset=${offset}` : ''}`,
       offset ? undefined : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
+      if (rec.fields['hide?']) continue
       const userIds: string[] = rec.fields['Users'] ?? []
       const status = rec.fields['status'] || 'design_only'
       for (const userId of userIds) {
@@ -431,12 +466,14 @@ async function getProjectStatusByUser(): Promise<Map<string, { built_verified: n
   } while (offset)
 
   return setCache('projectStatus', counts, 5 * 60 * 1000)
+  }, 'getProjectStatusByUser')
 }
 
 export async function getAllUsers(): Promise<UserSummary[]> {
   const cached = getCached<UserSummary[]>('allUsers')
   if (cached) return cached
 
+  return withPaginationRetry(async () => {
   const table = process.env.USER_AIRTABLE_TABLE_ID
   const [allRanks, statusByUser] = await Promise.all([getAllRanks(), getProjectStatusByUser()])
   const results: UserSummary[] = []
@@ -466,6 +503,7 @@ export async function getAllUsers(): Promise<UserSummary[]> {
   } while (offset)
 
   return setCache('allUsers', results, 5 * 60 * 1000)
+  }, 'getAllUsers')
 }
 
 // --- Gallery: all projects (patch-first, fallback to HARDWARE_ALL) ---
@@ -480,17 +518,19 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
   const cached = getCached<GalleryProject[]>('allProjects')
   if (cached) return cached
 
+  return withPaginationRetry(async () => {
   const patchTable = process.env.PATCH_AIRTABLE_TABLE_ID
   const results: GalleryProject[] = []
   let offset: string | undefined
 
   do {
     const data = await airtableFetch(
-      `${patchTable}?${offset ? `offset=${offset}` : ''}`,
+      `${patchTable}?sort[0][field]=Last%20Modified&sort[0][direction]=desc${offset ? `&offset=${offset}` : ''}`,
       offset ? undefined : { revalidate: 300, tags: ['all-projects'] }
     )
     for (const rec of data.records) {
       const f = rec.fields
+      if (f['hide?']) continue
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pictures = f['pictures']?.map((a: any) => ({ url: a.url, filename: a.filename }))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -516,6 +556,7 @@ export async function getAllProjects(): Promise<GalleryProject[]> {
   } while (offset)
 
   return setCache('allProjects', results, 5 * 60 * 1000)
+  }, 'getAllProjects')
 }
 
 // --- User & Project sync ---

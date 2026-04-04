@@ -3,6 +3,7 @@ import { getUserProfileByUsername, getSlackProfile, ProfileProject } from '@/lib
 import { safeHref } from '@/lib/sanitize'
 import { RankBadges } from '@/app/components/RankBadge'
 import { groupByStatus } from '@/lib/status'
+import { proxyImageUrl } from '@/lib/image'
 
 export const revalidate = 120 // 2 minutes
 
@@ -35,7 +36,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
       {image && (
         <div className="aspect-video bg-grub-bg2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image.url} alt={image.filename} className="w-full h-full object-cover" />
+          <img src={proxyImageUrl(image.url)} alt={image.filename} className="w-full h-full object-cover" />
         </div>
       )}
       <div className="p-5 space-y-3 flex flex-col flex-1">
@@ -124,12 +125,12 @@ export default async function ProfilePage({
         {slackProfile?.avatarUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={slackProfile.avatarUrl}
+            src={proxyImageUrl(slackProfile.avatarUrl)}
             alt={slackProfile.displayName}
             className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-grub-bg3"
           />
         )}
-        <div className="space-y-3 text-center sm:text-left">
+        <div className="space-y-2 text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-semibold text-grub-fg0">
               {slackProfile?.displayName ?? profile.username}
@@ -181,21 +182,26 @@ export default async function ProfilePage({
         </div>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {profile.leaderboardPosition && (
-          <StatCard label="Leaderboard" value={`#${profile.leaderboardPosition}`} />
-        )}
-        <StatCard label="Projects" value={String(profile.projects.length)} />
-        {hackingSince && (
-          <StatCard label="Hacking For" value={formatDuration(hackingSince)} />
-        )}
-      </div>
+      {(() => {
+        const stats: { label: string; value: string }[] = []
+        if (profile.leaderboardPosition) stats.push({ label: 'Leaderboard', value: `#${profile.leaderboardPosition}` })
+        stats.push({ label: profile.projects.length === 1 ? 'Project' : 'Projects', value: String(profile.projects.length) })
+        if (hackingSince) stats.push({ label: 'Hacking for', value: formatDuration(hackingSince) })
+        const cols = stats.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'
+        return (
+          <div className={`grid ${cols} gap-4`}>
+            {stats.map((s) => <StatCard key={s.label} label={s.label} value={s.value} />)}
+          </div>
+        )
+      })()}
 
       <section className="space-y-6">
-        <h2 className="text-lg font-semibold text-grub-fg0">Projects</h2>
+        <h2 className="text-lg font-semibold text-grub-fg0">
+          {profile.projects.length === 1 ? '1 Project' : `${profile.projects.length} Projects`}
+        </h2>
         {profile.projects.length === 0 ? (
-          <div className="text-center py-16 text-grub-fg4">
-            <p className="text-lg">No projects yet</p>
+          <div className="text-center py-12 text-grub-fg4">
+            <p>No projects yet</p>
           </div>
         ) : (
           groupByStatus(profile.projects).map((group) => (
@@ -204,7 +210,7 @@ export default async function ProfilePage({
                 {group.label}
                 <span className="ml-2 text-grub-fg4/60">{group.projects.length}</span>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {group.projects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Outfit } from 'next/font/google'
 import { Nav } from '@/app/components/Nav'
 import './globals.css'
@@ -8,7 +8,11 @@ const outfit = Outfit({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Take Two',
   description: 'View your hardware projects',
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

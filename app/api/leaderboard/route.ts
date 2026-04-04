@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, getSlackProfile, compareUsers } from '@/lib/airtable'
+import { proxyImageUrl } from '@/lib/image'
 
 const PER_PAGE = 10
 
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
         username: user.username,
         statusCounts: user.statusCounts,
         ranks: user.ranks,
-        avatarUrl: slack?.avatarUrl,
+        avatarUrl: slack?.avatarUrl ? proxyImageUrl(slack.avatarUrl) : undefined,
         displayName: slack?.displayName,
       }
     }),

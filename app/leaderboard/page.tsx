@@ -1,6 +1,7 @@
 import { getAllUsers, getSlackProfile, compareUsers } from "@/lib/airtable";
 import { LeaderboardList } from "@/app/components/LeaderboardList";
 import { SEASON, formatCountdown } from "@/lib/config";
+import { proxyImageUrl } from "@/lib/image";
 
 export const revalidate = 300; // 5 minutes
 
@@ -19,7 +20,9 @@ export default async function LeaderboardPage() {
                 username: user.username,
                 statusCounts: user.statusCounts,
                 ranks: user.ranks,
-                avatarUrl: slack?.avatarUrl,
+                avatarUrl: slack?.avatarUrl
+                    ? proxyImageUrl(slack.avatarUrl)
+                    : undefined,
                 displayName: slack?.displayName,
             };
         }),
@@ -34,10 +37,25 @@ export default async function LeaderboardPage() {
 
     return (
         <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-            <div>
+            <div className="space-y-3">
                 <h1 className="text-2xl font-semibold text-grub-fg0">
                     Leaderboard
                 </h1>
+                <div>
+                    <p className="text-sm text-grub-fg5">
+                        Top 3 at the end of the season get $150 travel stipend +
+                        lodging covered for{" "}
+                        <a
+                            href="https://rockymountainreprapfestival.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-grub-red hover:underline font-bold"
+                        >
+                            RMRRF 2026
+                        </a>{" "}
+                        April 18-19th!
+                    </p>
+                </div>
                 <div className="flex items-center gap-3 mt-1">
                     <p className="text-sm text-grub-fg4">
                         {sorted.length}{" "}
