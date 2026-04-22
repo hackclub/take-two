@@ -10,7 +10,7 @@ export interface SessionData {
 
 export const sessionOptions: SessionOptions = {
   password: process.env.SESSION_SECRET!,
-  cookieName: 'take-two',
+  cookieName: 'hardware',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,

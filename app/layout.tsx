@@ -6,7 +6,7 @@ import './globals.css'
 const outfit = Outfit({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Take Two',
+  title: 'Hardware',
   description: 'View your hardware projects',
 }
 
